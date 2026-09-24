@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - My Blog</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>My Blog</h1>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="create-blog.html">Create Blog</a>
+            <a href="dashboard.html">Dashboard</a>
+
+            <button id="logoutButton">Logout</button>
+        </nav>
+    </header>
+
+    <main>
+
+        <div class="dashboard-container">
+
+            <h2>Welcome, <span id="userName">User</span></h2>
+
+            <h2>All Blogs</h2>
+
+            <div id="blogList">
+                <p>Loading blogs...</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer>
+        <p>© 2026 My Blog</p>
+    </footer>
+
+    <script>
+
+        // =========================
+        // CHECK LOGIN
+        // =========================
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+
+            alert("Please login first.");
+
+            window.location.href = "login.html";
+        }
+
+
+        // =========================
+        // DISPLAY USER NAME
+        // =========================
+
+        const savedUser = localStorage.getItem("user");
+
+        if (savedUser) {
+
+            const user = JSON.parse(savedUser);
+
+            document.getElementById("userName").textContent =
+                user.name;
+        }
+
+
+        // =========================
+        // LOGOUT
+        // =========================
+
+        document
+            .getElementById("logoutButton")
+            .addEventListener("click", function() {
+
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+
+                window.location.href = "login.html";
+
+            });
+
+
+        // =========================
+        // LOAD BLOGS
+        // =========================
+
+        async function loadBlogs() {
+
+            const blogList =
+                document.getElementById("blogList");
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:5000/api/blogs"
+                );
+
+                const blogs = await response.json();
+
+                blogList.innerHTML = "";
+
+                if (blogs.length === 0) {
+
+                    blogList.innerHTML =
+                        "<p>No blogs found.</p>";
+
+                    return;
+                }
+
+
+                blogs.forEach(blog => {
+
+                    const blogCard =
+                        document.createElement("div");
+
+                    blogCard.className = "blog-card";
+
+                    blogCard.innerHTML = `
+
+                        <h3>${blog.title}</h3>
+
+                        <p>
+                            <strong>Category:</strong>
+                            ${blog.category}
+                        </p>
+
+                        <p>
+                            ${blog.content}
+                        </p>
+
+                        <p>
+                            <strong>Author:</strong>
+                            ${blog.author}
+                        </p>
+
+                        <p>
+                            <strong>Created:</strong>
+                            ${new Date(
+                                blog.createdAt
+                            ).toLocaleString()}
+                        </p>
+
+                        <button onclick="editBlog('${blog._id}')">
+                            Edit
+                        </button>
+
+                        <button onclick="deleteBlog('${blog._id}')">
+                            Delete
+                        </button>
+
+                    `;
+
+                    blogList.appendChild(blogCard);
+
+                });
+
+            } catch (error) {
+
+                console.log(error);
+
+                blogList.innerHTML =
+                    "<p>Unable to load blogs.</p>";
+            }
+        }
+
+
+        // =========================
+        // EDIT BLOG
+        // =========================
+
+        async function editBlog(id) {
+
+            const newTitle =
+                prompt("Enter new blog title:");
+
+            if (newTitle === null) {
+                return;
+            }
+
+            const newCategory =
+                prompt("Enter new category:");
+
+            if (newCategory === null) {
+                return;
+            }
+
+            const newContent =
+                prompt("Enter new blog content:");
+
+            if (newContent === null) {
+                return;
+            }
+
+            const newAuthor =
+                prompt("Enter author name:");
+
+            if (newAuthor === null) {
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `http://localhost:5000/api/blogs/${id}`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+
+                        body: JSON.stringify({
+                            title: newTitle,
+                            category: newCategory,
+                            content: newContent,
+                            author: newAuthor
+                        })
+                    }
+                );
+
+
+                const data = await response.json();
+
+
+                if (response.ok) {
+
+                    alert(
+                        "Blog updated successfully!"
+                    );
+
+                    loadBlogs();
+
+                } else {
+
+                    alert(
+                        data.message ||
+                        "Failed to update blog."
+                    );
+
+                    if (
+                        response.status === 401 ||
+                        response.status === 403
+                    ) {
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+
+                        window.location.href = "login.html";
+                    }
+                }
+
+            } catch (error) {
+
+                console.log(error);
+
+                alert("Server error.");
+            }
+        }
+
+
+        // =========================
+        // DELETE BLOG
+        // =========================
+
+        async function deleteBlog(id) {
+
+            if (
+                !confirm(
+                    "Are you sure you want to delete this blog?"
+                )
+            ) {
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `http://localhost:5000/api/blogs/${id}`,
+                    {
+                        method: "DELETE",
+
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    }
+                );
+
+
+                const data = await response.json();
+
+
+                if (response.ok) {
+
+                    alert(
+                        "Blog deleted successfully!"
+                    );
+
+                    loadBlogs();
+
+                } else {
+
+                    alert(
+                        data.message ||
+                        "Failed to delete blog."
+                    );
+
+                    if (
+                        response.status === 401 ||
+                        response.status === 403
+                    ) {
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+
+                        window.location.href = "login.html";
+                    }
+                }
+
+            } catch (error) {
+
+                console.log(error);
+
+                alert("Server error.");
+            }
+        }
+
+
+        // =========================
+        // START
+        // =========================
+
+        loadBlogs();
+
+    </script>
+
+</body>
+</html>
