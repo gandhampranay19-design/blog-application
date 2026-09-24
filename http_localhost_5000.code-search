@@ -1,0 +1,14 @@
+# Query: http://localhost:5000
+
+5 results - 3 files
+
+frontend\dashboard.html:
+  105:                     "http://localhost:5000/api/blogs"
+  215:                     `http://localhost:5000/api/blogs/${id}`,
+  290:                     `http://localhost:5000/api/blogs/${id}`,
+
+frontend\login.html:
+  84:                         "http://localhost:5000/api/login",
+
+frontend\register.html:
+  116:                         "http://localhost:5000/api/register",

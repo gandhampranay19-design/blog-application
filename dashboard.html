@@ -102,7 +102,7 @@
             try {
 
                 const response = await fetch(
-                    "http://localhost:5000/api/blogs"
+                    "https://blog-application-backend-h0n0.onrender.com/api/blogs"
                 );
 
                 const blogs = await response.json();
@@ -212,7 +212,7 @@
             try {
 
                 const response = await fetch(
-                    `http://localhost:5000/api/blogs/${id}`,
+                    `https://blog-application-backend-h0n0.onrender.com/api/blogs/${id}`,
                     {
                         method: "PUT",
 
@@ -287,7 +287,7 @@
             try {
 
                 const response = await fetch(
-                    `http://localhost:5000/api/blogs/${id}`,
+                    `https://blog-application-backend-h0n0.onrender.com/api/blogs/${id}`,
                     {
                         method: "DELETE",
 
